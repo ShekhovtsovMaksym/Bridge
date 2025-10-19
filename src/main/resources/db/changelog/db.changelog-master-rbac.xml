@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" author="system">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="username" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(100)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="system">
+        <addColumn tableName="users">
+            <column name="phone" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="customer_code" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="index_code" type="VARCHAR(6)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="3" author="system">
+        <addColumn tableName="users">
+            <column name="full_name" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="default_address_id" type="BIGINT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="allowed_to_request_partner" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="partner_status" type="VARCHAR(16)" defaultValue="NONE">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="4" author="system">
+        <createTable tableName="permissions">
+            <column name="code" type="VARCHAR(64)">
+                <constraints primaryKey="true" nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(128)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1024)"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="5" author="system">
+        <createTable tableName="roles">
+            <column name="name" type="VARCHAR(64)">
+                <constraints primaryKey="true" nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="VARCHAR(256)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="6" author="system">
+        <createTable tableName="role_permissions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="role_name" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_code" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="role_permissions" columnNames="role_name, permission_code" constraintName="uk_role_perm"/>
+        <addForeignKeyConstraint constraintName="fk_rp_role"
+                                 baseTableName="role_permissions" baseColumnNames="role_name"
+                                 referencedTableName="roles" referencedColumnNames="name"/>
+        <addForeignKeyConstraint constraintName="fk_rp_perm"
+                                 baseTableName="role_permissions" baseColumnNames="permission_code"
+                                 referencedTableName="permissions" referencedColumnNames="code"/>
+    </changeSet>
+
+    <changeSet id="7" author="system">
+        <createTable tableName="user_permissions">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="permission_code" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="grant_type" type="VARCHAR(8)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_up_user"
+                                 baseTableName="user_permissions" baseColumnNames="user_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_up_perm"
+                                 baseTableName="user_permissions" baseColumnNames="permission_code"
+                                 referencedTableName="permissions" referencedColumnNames="code"/>
+    </changeSet>
+
+    <changeSet id="8" author="system">
+        <addColumn tableName="users">
+            <column name="role_name" type="VARCHAR(64)" defaultValue="USER">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
