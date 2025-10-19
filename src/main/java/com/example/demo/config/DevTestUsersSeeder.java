@@ -1,7 +1,9 @@
 package com.example.demo.config;
 
 import com.example.demo.model.User;
+import com.example.demo.model.PartnerLink;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.PartnerLinkRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +16,7 @@ import java.util.Map;
 public class DevTestUsersSeeder {
 
     @Bean
-    public CommandLineRunner seedDevUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner seedDevUsers(UserRepository userRepository, PartnerLinkRepository partnerLinkRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             // Map of username -> role
             Map<String, String> users = Map.of(
@@ -50,12 +52,25 @@ public class DevTestUsersSeeder {
                 // Ensure required non-null test fields
                 u.setFullName("Test " + username);
                 u.setDefaultAddressId(1L);
+                // Assign partnerCode for SUPER_ADMIN for easy search (adm1, adm2)
+                if ("SUPER_ADMIN".equals(role)) {
+                    u.setPartnerCode(username); // e.g., adm1
+                }
 
                 // Save only if email not taken (to keep idempotency with unique email)
                 if (!userRepository.existsByEmail(u.getEmail())) {
                     userRepository.save(u);
                 }
             }
+
+            // Ensure a default partner link for UX: usr1 -> adm1
+            userRepository.findByUsername("usr1").ifPresent(usr -> {
+                userRepository.findByUsername("adm1").ifPresent(adm -> {
+                    if (!partnerLinkRepository.existsByUserIdAndPartnerAdminId(usr.getId(), adm.getId())) {
+                        partnerLinkRepository.save(new PartnerLink(usr, adm));
+                    }
+                });
+            });
         };
     }
 

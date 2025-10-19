@@ -43,6 +43,9 @@ public class User {
     @Column(name = "role_name", length = 64, nullable = false)
     private String roleName = "USER"; // current role of the user
 
+    @Column(name = "partner_code", unique = true, length = 50)
+    private String partnerCode; // unique key for SUPER_ADMIN search
+
     public User() {
     }
 
@@ -147,5 +150,13 @@ public class User {
 
     public void setRoleName(String roleName) {
         this.roleName = roleName;
+    }
+
+    public String getPartnerCode() {
+        return partnerCode;
+    }
+
+    public void setPartnerCode(String partnerCode) {
+        this.partnerCode = partnerCode;
     }
 }

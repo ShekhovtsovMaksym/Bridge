@@ -9,7 +9,9 @@ import AddressFormPage from './pages/AddressFormPage';
 import AccountPage from './pages/AccountPage';
 import RequestPage from './pages/RequestPage';
 import PartnersPage from './pages/PartnersPage';
+import PartnerDetailsPage from './pages/PartnerDetailsPage';
 import NewPage from './pages/NewPage';
+import ShipmentsNewPage from './pages/ShipmentsNewPage';
 import SettingsPage from './pages/SettingsPage';
 import ScanPage from './pages/ScanPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -88,10 +90,26 @@ function App() {
           }
         />
         <Route
+          path="/partners/:id"
+          element={
+            <PrivateRoute>
+              <PartnerDetailsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
           path="/new"
           element={
             <PrivateRoute>
               <NewPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/shipments/new"
+          element={
+            <PrivateRoute>
+              <ShipmentsNewPage />
             </PrivateRoute>
           }
         />

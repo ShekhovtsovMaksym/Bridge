@@ -59,7 +59,7 @@ function HomePage() {
 
   const destinations = role === 'SUPER_ADMIN'
     ? ['/account', '/settings', '/partners', '/scan']
-    : ['/account', '/request', '/partners', '/new'];
+    : ['/account', '/request', '/partners', '/shipments/new'];
 
   return (
     <div style={styles.container}>
