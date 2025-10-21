@@ -29,6 +29,14 @@ function ShipmentsNewPage() {
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState({});
 
+  // Received quotations (read-only for USER)
+  const [myRequests, setMyRequests] = useState([]);
+  const latestQuoted = useMemo(() => {
+    const arr = (myRequests || []).filter(r => r.status === 'QUOTED');
+    arr.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    return arr[0] || null;
+  }, [myRequests]);
+
   const hasPartners = partners.length > 0;
   const partnerLocked = !!preselectedPartnerId;
 
@@ -51,6 +59,19 @@ function ShipmentsNewPage() {
     };
     loadPartners();
   }, [preselectedPartnerId]);
+
+  useEffect(() => {
+    const loadMyRequests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const resp = await axios.get('/api/shipment-requests', { headers: { Authorization: `Bearer ${token}` } });
+        setMyRequests(Array.isArray(resp.data) ? resp.data : []);
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadMyRequests();
+  }, []);
 
   const validate = () => {
     const errs = {};
@@ -120,6 +141,24 @@ function ShipmentsNewPage() {
               <div style={styles.ctaBox}>
                 <div>Сначала добавьте партнёра на странице Partners.</div>
                 <button onClick={() => navigate('/partners')} style={styles.linkBtn}>Перейти к Partners</button>
+              </div>
+            )}
+
+            {latestQuoted && latestQuoted.quotation && (
+              <div style={styles.quoteBox}>
+                <h3 style={{marginTop:0}}>Просчёт от партнёра</h3>
+                <div style={{textAlign:'left', lineHeight:'1.8'}}>
+                  <div><strong>Request:</strong> {latestQuoted.code}</div>
+                  <div><strong>Insurance:</strong> {latestQuoted.quotation.insuranceAmount}</div>
+                  <div><strong>Delivery price:</strong> {latestQuoted.quotation.deliveryPrice}</div>
+                  <div><strong>Packing price:</strong> {latestQuoted.quotation.packingPrice}</div>
+                  <div><strong>Delivery time:</strong> {latestQuoted.quotation.deliveryTimeOption}</div>
+                  <div style={{marginTop:'6px'}}><strong>Shipping cost total ~ </strong> {Number(latestQuoted.quotation.insuranceAmount) + Number(latestQuoted.quotation.deliveryPrice) + Number(latestQuoted.quotation.packingPrice)}$</div>
+                </div>
+                <div style={{ display:'flex', gap:'8px', marginTop:'10px' }}>
+                  <button disabled style={styles.grayBtn}>Not accepted</button>
+                  <button disabled style={styles.grayBtn}>Create shipment</button>
+                </div>
               </div>
             )}
 

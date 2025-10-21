@@ -8,6 +8,7 @@ import com.example.demo.model.User;
 import com.example.demo.repository.PartnerLinkRepository;
 import com.example.demo.repository.ShipmentRequestRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.QuotationRepository;
 import com.example.demo.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ public class ShipmentsController {
     @Autowired private UserRepository userRepository;
     @Autowired private PartnerLinkRepository partnerLinkRepository;
     @Autowired private ShipmentRequestRepository shipmentRequestRepository;
+    @Autowired private QuotationRepository quotationRepository;
 
     private Optional<User> getCurrentUser(String authHeader) {
         String token = authHeader.replace("Bearer ", "");
@@ -119,6 +121,51 @@ public class ShipmentsController {
 
             ShipmentRequest saved = shipmentRequestRepository.save(sr);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Error: " + e.getMessage()));
+        }
+    }
+
+    // Minimal user endpoint to view own requests with quotation data (for UI display)
+    @GetMapping("/shipment-requests")
+    public ResponseEntity<?> listMyShipmentRequests(@RequestHeader("Authorization") String authHeader) {
+        try {
+            Optional<User> meOpt = getCurrentUser(authHeader);
+            if (meOpt.isEmpty()) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("User not found"));
+            User me = meOpt.get();
+            List<ShipmentRequest> list = shipmentRequestRepository.findAllByUser_Id(me.getId());
+            // sort newest first by createdAt desc (done on UI if needed)
+            return ResponseEntity.ok(list.stream().map(sr -> {
+                Map<String, Object> m = new java.util.LinkedHashMap<>();
+                m.put("id", sr.getId());
+                m.put("code", "SR-" + sr.getId());
+                m.put("partnerAdminId", sr.getPartnerAdmin().getId());
+                m.put("status", sr.getStatus());
+                m.put("createdAt", sr.getCreatedAt());
+                m.put("description", sr.getDescription());
+                m.put("kg", sr.getKg());
+                m.put("boxPcs", sr.getBoxPcs());
+                m.put("volume", sr.getVolume());
+                m.put("costOfGoods", sr.getCostOfGoods());
+                m.put("packingType", sr.getPackingType());
+                m.put("productLocation", sr.getProductLocation());
+                m.put("receiptCity", sr.getReceiptCity());
+                m.put("receiptDetails", sr.getReceiptDetails());
+                m.put("attachments", sr.getAttachments());
+                // Attach quotation if present
+                quotationRepository.findByShipmentRequest_Id(sr.getId()).ifPresent(q -> {
+                    Map<String, Object> qd = new java.util.LinkedHashMap<>();
+                    qd.put("id", q.getId());
+                    qd.put("insuranceAmount", q.getInsuranceAmount());
+                    qd.put("deliveryPrice", q.getDeliveryPrice());
+                    qd.put("packingPrice", q.getPackingPrice());
+                    qd.put("deliveryTimeOption", q.getDeliveryTimeOption());
+                    qd.put("comment", q.getComment());
+                    qd.put("createdAt", q.getCreatedAt());
+                    m.put("quotation", qd);
+                });
+                return m;
+            }).toList());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Error: " + e.getMessage()));
         }

@@ -12,6 +12,7 @@ import PartnersPage from './pages/PartnersPage';
 import PartnerDetailsPage from './pages/PartnerDetailsPage';
 import NewPage from './pages/NewPage';
 import ShipmentsNewPage from './pages/ShipmentsNewPage';
+import AdminQuotationPage from './pages/AdminQuotationPage';
 import SettingsPage from './pages/SettingsPage';
 import ScanPage from './pages/ScanPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -110,6 +111,14 @@ function App() {
           element={
             <PrivateRoute>
               <ShipmentsNewPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/quotation"
+          element={
+            <PrivateRoute>
+              <AdminQuotationPage />
             </PrivateRoute>
           }
         />

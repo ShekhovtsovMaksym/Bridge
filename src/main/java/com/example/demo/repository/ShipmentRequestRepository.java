@@ -21,9 +21,18 @@ public interface ShipmentRequestRepository extends JpaRepository<ShipmentRequest
 
     Optional<ShipmentRequest> findTopByUser_IdAndPartnerAdmin_IdOrderByCreatedAtDesc(Long userId, Long partnerAdminId);
 
+    Optional<ShipmentRequest> findByIdAndPartnerAdmin_Id(Long id, Long partnerAdminId);
+
+    @Query("select sr.id from ShipmentRequest sr where sr.user.id = :userId and sr.partnerAdmin.id = :partnerAdminId and sr.status = 'PENDING_QUOTATION' order by sr.createdAt asc")
+    List<Long> findPendingIdsByUserAndAdmin(@Param("userId") Long userId, @Param("partnerAdminId") Long partnerAdminId);
+
     @Modifying
     @Query("update ShipmentRequest sr set sr.adminSeen = true where sr.user.id = :userId and sr.partnerAdmin.id = :partnerAdminId and sr.status = 'PENDING_QUOTATION' and sr.adminSeen = false")
     int markPendingAsSeen(@Param("userId") Long userId, @Param("partnerAdminId") Long partnerAdminId);
+
+    @Modifying
+    @Query("update ShipmentRequest sr set sr.adminSeen = true where sr.id = :requestId and sr.status = 'PENDING_QUOTATION' and sr.adminSeen = false")
+    int markSinglePendingAsSeen(@Param("requestId") Long requestId);
 
     @Query("select max(sr.createdAt) from ShipmentRequest sr where sr.user.id = :userId and sr.partnerAdmin.id = :partnerAdminId")
     Instant findMaxCreatedAt(@Param("userId") Long userId, @Param("partnerAdminId") Long partnerAdminId);

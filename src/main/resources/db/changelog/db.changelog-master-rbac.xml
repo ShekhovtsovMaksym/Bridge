@@ -228,4 +228,46 @@
         </update>
     </changeSet>
 
+    <changeSet id="13" author="system">
+        <createTable tableName="quotations">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="shipment_request_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="admin_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="insurance_amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="delivery_price" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="packing_price" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="delivery_time_option" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="VARCHAR(1000)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint constraintName="fk_q_request"
+                                 baseTableName="quotations" baseColumnNames="shipment_request_id"
+                                 referencedTableName="shipment_requests" referencedColumnNames="id"/>
+        <addForeignKeyConstraint constraintName="fk_q_admin"
+                                 baseTableName="quotations" baseColumnNames="admin_id"
+                                 referencedTableName="users" referencedColumnNames="id"/>
+        <createIndex tableName="quotations" indexName="idx_q_request">
+            <column name="shipment_request_id"/>
+        </createIndex>
+        <createIndex tableName="quotations" indexName="idx_q_admin">
+            <column name="admin_id"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

@@ -94,7 +94,11 @@ function PartnersPage() {
                         <div style={styles.itemSub}>{c.fullName || '—'} — {c.email || '—'}</div>
                       </div>
                       {c.unreadCount > 0 && (
-                        <div title="Новые заявки" style={styles.badge}>{c.unreadCount}</div>
+                        <div
+                          title="Новые заявки"
+                          style={styles.badge}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/admin/quotation?userId=${c.userId}`); }}
+                        >{c.unreadCount}</div>
                       )}
                     </div>
                   </div>
