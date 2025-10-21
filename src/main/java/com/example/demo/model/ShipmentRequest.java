@@ -56,6 +56,9 @@ public class ShipmentRequest {
     @Column(length = 64, nullable = false)
     private String status = "PENDING_QUOTATION";
 
+    @Column(name = "admin_seen", nullable = false)
+    private boolean adminSeen = false;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
 
@@ -102,6 +105,9 @@ public class ShipmentRequest {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public boolean isAdminSeen() { return adminSeen; }
+    public void setAdminSeen(boolean adminSeen) { this.adminSeen = adminSeen; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

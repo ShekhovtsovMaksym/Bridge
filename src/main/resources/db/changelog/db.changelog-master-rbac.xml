@@ -217,4 +217,15 @@
                                  referencedTableName="shipment_requests" referencedColumnNames="id"/>
     </changeSet>
 
+    <changeSet id="12" author="system">
+        <addColumn tableName="shipment_requests">
+            <column name="admin_seen" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <update tableName="shipment_requests">
+            <column name="admin_seen" valueBoolean="false"/>
+        </update>
+    </changeSet>
+
 </databaseChangeLog>

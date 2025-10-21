@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useUser } from '../store/UserStore';
 
 function PartnerDetailsPage() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [data, setData] = useState(null);
+  const location = useLocation();
+  const { data: me } = useUser();
+
+  const [data, setData] = useState(null); // for USER flow (existing)
+  const [requests, setRequests] = useState([]); // for SUPER_ADMIN flow
+  const [client, setClient] = useState(location.state?.client || null); // from list page if available
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -13,8 +19,23 @@ function PartnerDetailsPage() {
     const load = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`/api/partners/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-        setData(res.data);
+        if (me?.role === 'SUPER_ADMIN') {
+          // Ensure client header info
+          if (!client) {
+            try {
+              const ls = await axios.get('/api/admin/partners', { headers: { Authorization: `Bearer ${token}` } });
+              if (Array.isArray(ls.data)) {
+                const found = ls.data.find((x) => String(x.userId) === String(id));
+                if (found) setClient(found);
+              }
+            } catch (_) {}
+          }
+          const res = await axios.get(`/api/admin/partners/${id}/requests`, { headers: { Authorization: `Bearer ${token}` } });
+          setRequests(Array.isArray(res.data) ? res.data : []);
+        } else {
+          const res = await axios.get(`/api/partners/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+          setData(res.data);
+        }
       } catch (e) {
         setError((e.response && e.response.data && e.response.data.message) || 'Failed to load');
       } finally {
@@ -22,7 +43,7 @@ function PartnerDetailsPage() {
       }
     };
     load();
-  }, [id]);
+  }, [id, me]);
 
   if (loading) {
     return <div style={styles.container}>Loading…</div>;
@@ -32,9 +53,45 @@ function PartnerDetailsPage() {
     return (
       <div style={styles.container}>
         <div style={styles.content}>
-          <h1>Partner</h1>
+          <h1>{me?.role === 'SUPER_ADMIN' ? 'Партнёр' : 'Partner'}</h1>
           <div style={styles.error}>{error}</div>
-          <button onClick={() => navigate('/partners')} style={styles.button}>Back to Partners</button>
+          <button onClick={() => navigate('/partners')} style={styles.button}>{me?.role === 'SUPER_ADMIN' ? 'Назад' : 'Back to Partners'}</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (me?.role === 'SUPER_ADMIN') {
+    const codeOf = (customerCode, uid) => {
+      if (!customerCode) return String(uid);
+      return customerCode.startsWith('CUST-') ? customerCode.substring(5) : customerCode;
+    };
+    return (
+      <div style={styles.container}>
+        <div style={styles.content}>
+          <h1>{client ? `Partner_${codeOf(client.customerCode, client.userId)}` : 'Partner'}</h1>
+          {client && (
+            <div style={styles.card}>
+              <div><strong>Имя:</strong> {client.fullName || '—'}</div>
+              <div><strong>Email:</strong> {client.email || '—'}</div>
+              <div><strong>Телефон:</strong> {client.phone || '—'}</div>
+            </div>
+          )}
+          <div style={{textAlign:'left', marginTop:'16px'}}>
+            <h3>Заявки</h3>
+            {requests.length > 0 ? (
+              <ul>
+                {requests.map((r) => (
+                  <li key={r.requestId}>{r.code} ({r.status})</li>
+                ))}
+              </ul>
+            ) : (
+              <div style={{color:'#666'}}>Заявок пока нет</div>
+            )}
+          </div>
+          <div style={{ display:'flex', gap:'10px', justifyContent:'center', marginTop:'12px' }}>
+            <button onClick={() => navigate('/partners')} style={styles.button}>Назад</button>
+          </div>
         </div>
       </div>
     );
